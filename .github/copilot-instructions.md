@@ -1,3 +1,3 @@
 ## Code review
 
-- Always write all review comments and summaries in Korean (한국어).
+- 모든 리뷰 코멘트와 요약은 한국어로 작성한다.
