@@ -46,7 +46,7 @@ jobs:
           RESULT: ${{ steps.ai.outputs.response }}
         run: |
           echo "$RESULT"
-          if echo "$RESULT" | head -n 1 | grep -q "BLOCK"; then
+          if [[ "${RESULT%%$'\n'*}" != "PASS" ]]; then
             echo "::error::AI review blocked this PR"
             exit 1
           fi
