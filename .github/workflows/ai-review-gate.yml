@@ -35,6 +35,7 @@ jobs:
         id: ai
         uses: actions/ai-inference@v3
         with:
+          model: ""
           prompt-file: prompt.txt
           system-prompt: You are a strict security code reviewer.
         env:
