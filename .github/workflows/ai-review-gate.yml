@@ -1,0 +1,52 @@
+name: AI Review Gate
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Build prompt
+        run: |
+          {
+            echo "Review the following git diff."
+            echo "If it contains hardcoded secrets (API keys, tokens, passwords) or obvious security issues,"
+            echo "the FIRST line of your answer must be exactly BLOCK. Otherwise the first line must be exactly PASS."
+            echo "Then explain briefly in Korean."
+            echo
+            git diff origin/${{ github.base_ref }}...HEAD
+          } > prompt.txt
+
+      - name: AI review
+        id: ai
+        uses: actions/ai-inference@v3
+        with:
+          model: ""
+          prompt-file: prompt.txt
+          system-prompt: You are a strict security code reviewer.
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
+
+      - name: Gate
+        env:
+          RESULT: ${{ steps.ai.outputs.response }}
+        run: |
+          echo "$RESULT"
+          if [[ "${RESULT%%$'\n'*}" != "PASS" ]]; then
+            echo "::error::AI review blocked this PR"
+            exit 1
+          fi
